@@ -1,15 +1,27 @@
+Claude proxy · JS
 exports.handler = async (event) => {
   // Solo aceptar POST
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
  
-  // CORS headers — solo permitir desde el dominio de Netlify
+  const allowedOrigins = [
+    'https://calculadoraflete.netlify.app',
+    'https://calculadoraflete2.netlify.app'
+  ];
+  const origin = event.headers.origin || '';
+  const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[1];
+ 
   const headers = {
-    'Access-Control-Allow-Origin': 'https://calculadoraflete.netlify.app',
+    'Access-Control-Allow-Origin': corsOrigin,
     'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Content-Type': 'application/json',
   };
+ 
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers, body: '' };
+  }
  
   try {
     const body = JSON.parse(event.body);
