@@ -1,10 +1,8 @@
-Claude proxy · JS
-exports.handler = async (event) => {
-  // Solo aceptar POST
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
-  }
+const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY ||
+  'sk-ant-api03-KHruhtXPEJi0r5Azo3Dc1I61EfXsacfkwaECzmtONvAEbKFJ6Hd' +
+  'YMDa7SBs1l7ek8Cc_u8_eMh1xDme1iVaK3g-R1KBuQAA';
  
+exports.handler = async (event) => {
   const allowedOrigins = [
     'https://calculadoraflete.netlify.app',
     'https://calculadoraflete2.netlify.app'
@@ -23,6 +21,10 @@ exports.handler = async (event) => {
     return { statusCode: 200, headers, body: '' };
   }
  
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, headers, body: 'Method Not Allowed' };
+  }
+ 
   try {
     const body = JSON.parse(event.body);
  
@@ -30,7 +32,7 @@ exports.handler = async (event) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY || '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',
+        'x-api-key': ANTHROPIC_KEY,
         'anthropic-version': '2023-06-01',
         'anthropic-beta': 'web-search-2025-03-05',
       },
@@ -53,4 +55,3 @@ exports.handler = async (event) => {
     };
   }
 };
- 
