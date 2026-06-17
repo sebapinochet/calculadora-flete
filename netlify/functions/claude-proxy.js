@@ -1,7 +1,4 @@
-const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY ||
-  'sk-ant-api03-KHruhtXPEJi0r5Azo3Dc1I61EfXsacfkwaECzmtONvAEbKFJ6Hd' +
-  'YMDa7SBs1l7ek8Cc_u8_eMh1xDme1iVaK3g-R1KBuQAA';
- 
+Claude proxy · JS
 exports.handler = async (event) => {
   const allowedOrigins = [
     'https://calculadoraflete.netlify.app',
@@ -27,12 +24,11 @@ exports.handler = async (event) => {
  
   try {
     const body = JSON.parse(event.body);
- 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_KEY,
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01',
         'anthropic-beta': 'web-search-2025-03-05',
       },
@@ -43,15 +39,9 @@ exports.handler = async (event) => {
         messages: body.messages,
       }),
     });
- 
     const data = await response.json();
     return { statusCode: 200, headers, body: JSON.stringify(data) };
- 
   } catch (err) {
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: err.message }),
-    };
+    return { statusCode: 500, headers, body: JSON.stringify({ error: err.message }) };
   }
 };
