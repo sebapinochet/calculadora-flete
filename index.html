@@ -283,10 +283,12 @@ async function actualizarPrecios(){
       })
     });
     const data=await resp.json();
-    const textBlock=data.content?.find(b=>b.type==="text");
-    if(!textBlock)return;
-    const raw=textBlock.text.replace(/```json|```/g,'').trim();
-    const parsed=JSON.parse(raw);
+    // Buscar JSON en cualquier bloque de texto de la respuesta
+    const allText=data.content?.filter(b=>b.type==="text").map(b=>b.text).join('\n')||'';
+    // Extraer el primer objeto JSON válido que tenga diesel y bencina
+    const jsonMatch=allText.match(/\{[^{}]*"diesel"\s*:\s*\d+[^{}]*"bencina"\s*:\s*\d+[^{}]*\}|\{[^{}]*"bencina"\s*:\s*\d+[^{}]*"diesel"\s*:\s*\d+[^{}]*\}/);
+    if(!jsonMatch)return;
+    const parsed=JSON.parse(jsonMatch[0]);
     if(parsed.diesel&&parsed.bencina){
       PC.diesel=Math.round(parsed.diesel);
       PC.bencina=Math.round(parsed.bencina);
@@ -854,10 +856,11 @@ document.getElementById("btn-calc").addEventListener("click",async function(){
       })
     });
     const tollData=await tollResp.json();
-    const textBlock=tollData.content?.find(b=>b.type==="text");
-    if(textBlock){
-      const raw=textBlock.text.replace(/```json|```/g,'').trim();
-      const parsed=JSON.parse(raw);
+    // Buscar JSON con peajes en cualquier bloque de texto
+    const allTollText=tollData.content?.filter(b=>b.type==="text").map(b=>b.text).join('\n')||'';
+    const jsonMatch=allTollText.match(/\{[^{}]*"peajes"\s*:\s*\[[^\]]*\][^{}]*\}/s);
+    if(jsonMatch){
+      const parsed=JSON.parse(jsonMatch[0]);
       if(parsed.peajes&&parsed.peajes.length>0){
         parsed.peajes.forEach(p=>{
           const costoTotal=roundToll?p.costo*2:p.costo;
