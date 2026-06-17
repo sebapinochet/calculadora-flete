@@ -1,4 +1,4 @@
-Claude proxy · JS
+// Claude proxy · JS
 exports.handler = async (event) => {
   const allowedOrigins = [
     'https://calculadoraflete.netlify.app',
