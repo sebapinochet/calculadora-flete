@@ -23,21 +23,36 @@ exports.handler = async (event) => {
  
   try {
     const body = JSON.parse(event.body);
+    // useSearch=true: incluir web search (para precios CNE)
+    // useSearch=false: sin web search, respuesta rápida (para peajes)
+    const useSearch = body.useSearch === true;
+ 
+    const requestBody = {
+      model: 'claude-sonnet-4-6',
+      max_tokens: useSearch ? 2000 : 800,
+      messages: body.messages,
+    };
+ 
+    const reqHeaders = {
+      'Content-Type': 'application/json',
+      'x-api-key': process.env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+    };
+ 
+    if (useSearch) {
+      reqHeaders['anthropic-beta'] = 'web-search-2025-03-05';
+      requestBody.tools = [{ type: 'web_search_20250305', name: 'web_search' }];
+    }
+ 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        messages: body.messages,
-      }),
+      headers: reqHeaders,
+      body: JSON.stringify(requestBody),
     });
+ 
     const data = await response.json();
     return { statusCode: 200, headers, body: JSON.stringify(data) };
+ 
   } catch (err) {
     return { statusCode: 500, headers, body: JSON.stringify({ error: err.message }) };
   }
